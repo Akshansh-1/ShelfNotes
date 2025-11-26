@@ -16,6 +16,11 @@ import com.example.shelfnotes.data.Book
 import com.example.shelfnotes.ui.book.BookScreen
 import com.example.shelfnotes.ui.bookshelf.BookshelfScreen
 import com.example.shelfnotes.ui.theme.ShelfNotesTheme
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,12 +57,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.SharedTransitionScope
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable

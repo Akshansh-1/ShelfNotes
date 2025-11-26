@@ -1,7 +1,5 @@
 package com.example.shelfnotes.data
 
-package com.example.shelfnotes.data
-
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey

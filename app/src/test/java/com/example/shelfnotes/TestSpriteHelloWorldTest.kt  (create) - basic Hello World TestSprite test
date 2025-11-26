@@ -1,0 +1,44 @@
+build.gradle.kts:
+plugins {
+    kotlin("jvm") version "1.5.31"
+}
+
+repositories {
+    mavenCentral()
+    maven("https://your.testsprite.repo.url")
+}
+
+dependencies {
+    classpath("com.testsprite:testsprite-plugin:1.0.0")
+}
+
+app/build.gradle.kts:
+plugins {
+    id("com.testsprite") version "1.0.0"
+}
+
+dependencies {
+    testImplementation("com.testsprite:testsprite-core:1.0.0")
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+testsprite.yml:
+version: '1.0'
+tests:
+  - name: HelloWorldTest
+    description: A basic Hello World test using TestSprite
+
+app/src/test/java/com/example/shelfnotes/TestSpriteHelloWorldTest.kt:
+import com.testsprite.TestSprite
+import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
+
+class TestSpriteHelloWorldTest {
+    @Test
+    fun helloWorld() {
+        assertEquals("Hello, World!", "Hello, World!")
+    }
+}

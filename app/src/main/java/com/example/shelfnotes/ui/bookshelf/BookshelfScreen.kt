@@ -1,6 +1,7 @@
 package com.example.shelfnotes.ui.bookshelf
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.border
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -45,14 +45,18 @@ import com.example.shelfnotes.ui.theme.WoodLight
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,16 +65,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.toArgb
 import kotlin.random.Random
 
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.LightMode
-
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.filled.Sort
-
 import com.example.shelfnotes.ui.utils.rememberHapticFeedback
+import com.example.shelfnotes.ui.utils.HapticFeedback
+import androidx.compose.foundation.shape.CircleShape
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -118,7 +119,7 @@ fun BookshelfScreen(
                         Box {
                             IconButton(onClick = { showSortMenu = true }) {
                                 Icon(
-                                    Icons.Default.Sort,
+                                    Icons.Default.List,
                                     contentDescription = "Sort",
                                     tint = MaterialTheme.colorScheme.onBackground
                                 )
@@ -147,7 +148,7 @@ fun BookshelfScreen(
                         // Dark Mode Toggle
                         IconButton(onClick = onToggleDarkMode) {
                             Icon(
-                                if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                Icons.Default.Info, // Placeholder for Dark/Light mode
                                 contentDescription = "Toggle Dark Mode",
                                 tint = MaterialTheme.colorScheme.onBackground
                             )
@@ -194,8 +195,9 @@ fun BookshelfScreen(
                     }
                 }
             }
-                .padding(paddingValues)
-        ) {
+        }
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 120.dp),
                 contentPadding = PaddingValues(16.dp),
@@ -219,9 +221,6 @@ fun BookshelfScreen(
     }
 }
 
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
-
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun SharedTransitionScope.BookItem(
@@ -232,107 +231,103 @@ fun SharedTransitionScope.BookItem(
     haptic: HapticFeedback,
     animatedVisibilityScope: AnimatedVisibilityScope
 ) {
-    var showMenu by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Book") },
+            text = { Text("Are you sure you want to delete '${book.title}'?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete()
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    Card(
         modifier = Modifier
+            .aspectRatio(0.7f)
             .combinedClickable(
-                onClick = {
-                    haptic.click()
-                    onClick()
-                },
+                onClick = onClick,
                 onLongClick = {
                     haptic.heavyClick()
-                    showMenu = true
+                    showDeleteDialog = true
                 }
             )
+            .sharedElement(
+                rememberSharedContentState(key = "book-${book.id}"),
+                animatedVisibilityScope = animatedVisibilityScope
+            ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = book.color)
     ) {
-        Box {
-            Card(
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Book Cover Design
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(0.7f)
-                    .sharedElement(
-                        state = rememberSharedContentState(key = "book-${book.id}"),
-                        animatedVisibilityScope = animatedVisibilityScope
-                    ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                colors = CardDefaults.cardColors(containerColor = book.color)
+                    .fillMaxSize()
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color.Black.copy(alpha = 0.2f),
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.1f)
-                                )
-                            )
-                        )
-                ) {
-                    // Spine visual
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(start = 4.dp)
-                            .background(Color.White.copy(alpha = 0.1f))
-                    )
-                    
+                Text(
+                    text = book.title,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    ),
+                    maxLines = 3
+                )
+                
+                if (book.category.isNotEmpty()) {
                     Text(
-                        text = book.title,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(8.dp),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
+                        text = book.category,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.8f)
                     )
                 }
             }
-
-            // Favorite Star Icon
+            
+            // Favorite Icon
             IconButton(
-                onClick = {
-                    haptic.click()
-                    onToggleFavorite()
-                },
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(4.dp)
+                onClick = onToggleFavorite,
+                modifier = Modifier.align(Alignment.TopEnd)
             ) {
                 Icon(
-                    if (book.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-                    contentDescription = if (book.isFavorite) "Unfavorite" else "Favorite",
-                    tint = if (book.isFavorite) Color(0xFFFFD700) else Color.White,
-                    modifier = Modifier.size(24.dp)
+                    if (book.isFavorite) Icons.Default.Star else Icons.Default.Star, // Use Star for both (maybe change tint?)
+                    contentDescription = "Favorite",
+                    tint = if (book.isFavorite) Color.White else Color.White.copy(alpha = 0.5f)
                 )
             }
-        }
-        
-        DropdownMenu(
-            expanded = showMenu,
-            onDismissRequest = { showMenu = false }
-        ) {
-            DropdownMenuItem(
-                text = { Text("Delete") },
-                onClick = {
-                    onDelete()
-                    showMenu = false
-                }
+            
+            // Spine effect
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.2f),
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.1f)
+                            ),
+                            startX = 0f,
+                            endX = 40f
+                        )
+                    )
             )
         }
-        
-        // Shelf shadow/wood under the book
-        Spacer(modifier = Modifier.height(8.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(12.dp)
-                .background(WoodLight)
-        )
     }
 }
 
@@ -342,85 +337,65 @@ fun AddBookDialog(
     onConfirm: (String, Int, String) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
+    var selectedColor by remember { mutableStateOf(Color(0xFF4CAF50).toArgb()) }
     var selectedCategory by remember { mutableStateOf("Personal") }
     
-    val categories = listOf("Personal", "Work", "Study", "Ideas", "Journal", "Other")
-    
-    // Predefined premium colors
     val colors = listOf(
-        0xFF8D6E63, // Brown
-        0xFF5D4037, // Dark Brown
-        0xFF1B5E20, // Green
-        0xFF0D47A1, // Blue
-        0xFFB71C1C, // Red
-        0xFF4A148C  // Purple
+        0xFFF44336, 0xFFE91E63, 0xFF9C27B0, 0xFF673AB7,
+        0xFF3F51B5, 0xFF2196F3, 0xFF03A9F4, 0xFF00BCD4,
+        0xFF009688, 0xFF4CAF50, 0xFF8BC34A, 0xFFCDDC39,
+        0xFFFFEB3B, 0xFFFFC107, 0xFFFF9800, 0xFFFF5722,
+        0xFF795548, 0xFF9E9E9E, 0xFF607D8B
     )
-    var selectedColor by remember { mutableStateOf(colors.first()) }
+    
+    val categories = listOf("Personal", "Work", "Study", "Ideas", "Journal", "Other")
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("New Book") },
         text = {
-            Column {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Book Title") },
+                    label = { Text("Title") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(16.dp))
                 
-                Text("Category:")
-                Spacer(modifier = Modifier.height(8.dp))
+                Text("Color", style = MaterialTheme.typography.bodyMedium)
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.height(80.dp)
-                ) {
-                    items(categories) { category ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    if (selectedCategory == category) MaterialTheme.colorScheme.primaryContainer
-                                    else MaterialTheme.colorScheme.surfaceVariant,
-                                    shape = MaterialTheme.shapes.small
-                                )
-                                .clickable { selectedCategory = category }
-                                .padding(8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                category,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (selectedCategory == category) MaterialTheme.colorScheme.onPrimaryContainer
-                                else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("Select Cover Color:")
-                Spacer(modifier = Modifier.height(8.dp))
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
+                    columns = GridCells.Adaptive(minSize = 40.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(colors) { color ->
+                    items(colors) { colorInt ->
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
-                                .background(Color(color), shape = MaterialTheme.shapes.small)
-                                .clickable { selectedColor = color }
-                                .then(
-                                    if (selectedColor == color) {
-                                        Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small)
-                                    } else Modifier
+                                .background(Color(colorInt), CircleShape)
+                                .border(
+                                    width = if (selectedColor == colorInt.toInt()) 3.dp else 0.dp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = CircleShape
                                 )
+                                .clickable { selectedColor = colorInt.toInt() }
+                        )
+                    }
+                }
+                
+                Text("Category", style = MaterialTheme.typography.bodyMedium)
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(categories) { category ->
+                        FilterChip(
+                            selected = selectedCategory == category,
+                            onClick = { selectedCategory = category },
+                            label = { Text(category) }
                         )
                     }
                 }
@@ -430,7 +405,7 @@ fun AddBookDialog(
             TextButton(
                 onClick = {
                     if (title.isNotBlank()) {
-                        onConfirm(title, selectedColor.toInt(), selectedCategory)
+                        onConfirm(title, selectedColor, selectedCategory)
                     }
                 }
             ) {

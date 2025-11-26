@@ -9,11 +9,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.shelfnotes.data.Book
 import com.example.shelfnotes.ui.components.PageTurnEffect
 import com.example.shelfnotes.ui.theme.PaperCream
@@ -33,10 +37,12 @@ import com.example.shelfnotes.ui.components.PageTemplate
 import com.example.shelfnotes.data.Page
 
 import com.example.shelfnotes.ui.components.DrawingController
+import com.example.shelfnotes.ui.components.DrawingCanvas
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.Row
@@ -44,7 +50,7 @@ import androidx.compose.foundation.layout.Arrangement
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.filled.Brush
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.mutableStateOf
@@ -53,12 +59,59 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.alpha
 
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.AlertDialog
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalFoundationApi::class)
+@Composable
+fun BookScreen(
+    bookId: Int,
+    onClose: () -> Unit,
+    viewModel: BookViewModel,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope
+) {
+    val pages by viewModel.pages.collectAsState()
+    val currentBook by viewModel.currentBook.collectAsState()
+    val pagerState = rememberPagerState(pageCount = { pages.size })
+
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(onClick = { viewModel.addPage() }) {
+                Icon(Icons.Default.Add, contentDescription = "Add Page")
+            }
+        }
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+             if (pages.isEmpty()) {
+                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                     Text("No pages. Tap + to add one.")
+                 }
+             } else {
+                 HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { pageIndex ->
+                     val page = pages[pageIndex]
+                     BookPage(
+                         page = page,
+                         onSave = { updatedPage -> viewModel.savePage(updatedPage) }
+                     )
+                 }
+             }
+             
+             // Close button (Overlay)
+             IconButton(
+                 onClick = onClose,
+                 modifier = Modifier.align(Alignment.TopStart).padding(16.dp)
+             ) {
+                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+             }
+        }
+    }
+}
 
 @Composable
 fun BookPage(
@@ -130,7 +183,7 @@ fun BookPage(
                 },
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
                     color = MaterialTheme.colorScheme.onSurface,
-                    lineHeight = 31.dp
+                    lineHeight = 31.sp
                 ),
                 modifier = Modifier.fillMaxSize(),
                 decorationBox = { innerTextField ->
@@ -201,7 +254,7 @@ fun BookPage(
                     )
             ) {
                 Icon(
-                    if (isEraserMode) Icons.Default.Edit else Icons.Default.Brush,
+                    if (isEraserMode) Icons.Default.Edit else Icons.Default.Edit,
                     contentDescription = if (isEraserMode) "Switch to Pen" else "Switch to Eraser",
                     tint = if (isEraserMode) MaterialTheme.colorScheme.onPrimaryContainer
                     else MaterialTheme.colorScheme.onSurface
@@ -261,7 +314,7 @@ fun BookPage(
                         .clickable(enabled = !isEraserMode) { showStrokeMenu = true }
                         .alpha(if (isEraserMode) 0.5f else 1f)
                 ) {
-                    Icon(Icons.Default.Brush, contentDescription = "Brush Size")
+                    Icon(Icons.Default.Edit, contentDescription = "Brush Size")
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("${currentStrokeWidth.toInt()}px", style = MaterialTheme.typography.bodySmall)
                 }
