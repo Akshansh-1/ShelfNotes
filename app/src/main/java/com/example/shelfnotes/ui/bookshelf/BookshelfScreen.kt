@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
+
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.shelfnotes.data.Book
 import com.example.shelfnotes.ui.theme.WoodDark
-import com.example.shelfnotes.ui.theme.WoodLight
+
 
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -48,14 +48,14 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FloatingActionButton
+
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.mutableStateOf
@@ -63,7 +63,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.toArgb
-import kotlin.random.Random
+
 
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -305,9 +305,9 @@ fun SharedTransitionScope.BookItem(
                 modifier = Modifier.align(Alignment.TopEnd)
             ) {
                 Icon(
-                    if (book.isFavorite) Icons.Default.Star else Icons.Default.Star, // Use Star for both (maybe change tint?)
+                    Icons.Default.Star,
                     contentDescription = "Favorite",
-                    tint = if (book.isFavorite) Color.White else Color.White.copy(alpha = 0.5f)
+                    tint = if (book.isFavorite) Color(0xFFFFC107) else Color.White.copy(alpha = 0.5f)
                 )
             }
             
